@@ -1,0 +1,42 @@
+{# Reusable session table component #}
+<table class="data-table session-table">
+    <thead>
+        <tr>
+            <th>Session Name</th>
+            <th>Date</th>
+            <th>Messages</th>
+            <th>Cost</th>
+            <th>Model(s)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for session in sessions %}
+        <tr class="clickable-row" onclick="window.location.href='/sessions/{{ encoded_path }}/{{ session.session_id }}'">
+            <td><strong>{{ session.slug }}</strong></td>
+            <td>{{ session.date }}</td>
+            <td class="text-right">{{ session.message_count }}</td>
+            <td class="text-right">${{ "%.2f"|format(session.total_cost_usd) }}</td>
+            <td>{{ session.models }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+.session-table {
+    width: 100%;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+    background-color: var(--hover-bg);
+}
+
+.text-right {
+    text-align: right;
+}
+</style>

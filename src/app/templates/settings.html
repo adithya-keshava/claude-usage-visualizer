@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="section">
+        <h2>Settings</h2>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/settings" class="settings-form">
+            <div class="form-group">
+                <label for="data_dir">Claude Data Directory</label>
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="data_dir"
+                        name="data_dir"
+                        value="{{ current_dir }}"
+                        placeholder="~/.claude"
+                        required
+                    >
+                    {% if is_valid %}
+                        <span class="validation-icon valid">✓</span>
+                    {% else %}
+                        <span class="validation-icon invalid">✗</span>
+                    {% endif %}
+                </div>
+                <p class="form-help">
+                    Path containing stats-cache.json and/or projects/ directory.
+                    Use ~ for home directory.
+                </p>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="/" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

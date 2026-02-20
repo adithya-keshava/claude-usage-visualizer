@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Projects</h2>
+
+    {% if error %}
+    <div class="error-box">
+        <p>{{ error }}</p>
+        <p><a href="/settings">Configure data directory →</a></p>
+    </div>
+    {% elif projects is none %}
+    <div class="error-box">
+        <p>Error loading projects.</p>
+    </div>
+    {% elif projects|length == 0 %}
+    <div class="empty-state">
+        <p>No projects found. Start using Claude Code to see data.</p>
+    </div>
+    {% else %}
+    <div class="charts-section" style="margin-bottom: 2rem;">
+        <div class="chart-wrapper">
+            <canvas id="projectCostChart"></canvas>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Sessions</th>
+                <th>Total Tokens</th>
+                <th>Total Cost</th>
+                <th>Date Range</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr class="clickable-row" onclick="window.location.href='/projects/{{ project.encoded_path }}'">
+                <td><strong>{{ project.display_name }}</strong></td>
+                <td class="text-right">{{ project.session_count }}</td>
+                <td class="text-right">{{ "{:,}".format(project.total_input_tokens + project.total_output_tokens) }}</td>
+                <td class="text-right">${{ "%.2f"|format(project.total_cost_usd) }}</td>
+                <td>{{ project.date_range or "—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
+<style>
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+    background-color: var(--hover-bg);
+}
+
+.text-right {
+    text-align: right;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.error-box {
+    background-color: var(--error-bg);
+    border-left: 4px solid var(--error-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.error-box a {
+    color: var(--error-color);
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

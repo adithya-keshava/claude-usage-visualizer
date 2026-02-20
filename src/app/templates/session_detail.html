@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="/projects">Projects</a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="/projects/{{ encoded_path }}">{{ project_name or "Unknown" }}</a>
+        <span class="breadcrumb-separator">/</span>
+        <span>{{ session_slug or "Unknown" }}</span>
+    </nav>
+
+    {% if error %}
+    <div class="error-box">
+        <p>{{ error }}</p>
+        <p><a href="{{ back_url }}">← Back to Project</a></p>
+    </div>
+    {% elif messages is none %}
+    <div class="error-box">
+        <p>Error loading session details.</p>
+    </div>
+    {% else %}
+    <h2>Session: {{ session_slug or "Unknown" }}</h2>
+
+    <div class="session-metadata">
+        <div class="meta-item">
+            <span class="meta-label">Project:</span>
+            <span class="meta-value">{{ project_name or "Unknown" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Messages:</span>
+            <span class="meta-value">{{ message_count }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Models:</span>
+            <span class="meta-value">{{ models }}</span>
+        </div>
+    </div>
+
+    <div class="summary-cards">
+        <div class="stat-card">
+            <div class="stat-label">Input Tokens</div>
+            <div class="stat-value">{{ "{:,}".format(total_input_tokens) }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Output Tokens</div>
+            <div class="stat-value">{{ "{:,}".format(total_output_tokens) }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Cache Read</div>
+            <div class="stat-value">{{ "{:,}".format(total_cache_read_tokens) }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Cache Write</div>
+            <div class="stat-value">{{ "{:,}".format(total_cache_creation_tokens) }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Cost</div>
+            <div class="stat-value highlight">${{ "%.4f"|format(total_cost_usd) }}</div>
+        </div>
+    </div>
+
+    {% if messages|length == 0 %}
+    <div class="empty-state">
+        <p>No messages found in this session.</p>
+    </div>
+    {% else %}
+    <table class="data-table messages-table">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Model</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Cache Read</th>
+                <th>Cache Write</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for msg in messages %}
+            <tr>
+                <td class="timestamp"><span data-timestamp="{{ msg.timestamp }}">{{ msg.date_time }}</span></td>
+                <td class="model">{{ msg.model }}</td>
+                <td class="text-right">{{ "{:,}".format(msg.input_tokens) }}</td>
+                <td class="text-right">{{ "{:,}".format(msg.output_tokens) }}</td>
+                <td class="text-right">{{ "{:,}".format(msg.cache_read_tokens) }}</td>
+                <td class="text-right">{{ "{:,}".format(msg.cache_creation_tokens) }}</td>
+                <td class="text-right cost">${{ "%.4f"|format(msg.cost_usd) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="summary-row">
+                <td colspan="2"><strong>Totals</strong></td>
+                <td class="text-right"><strong>{{ "{:,}".format(total_input_tokens) }}</strong></td>
+                <td class="text-right"><strong>{{ "{:,}".format(total_output_tokens) }}</strong></td>
+                <td class="text-right"><strong>{{ "{:,}".format(total_cache_read_tokens) }}</strong></td>
+                <td class="text-right"><strong>{{ "{:,}".format(total_cache_creation_tokens) }}</strong></td>
+                <td class="text-right cost"><strong>${{ "%.4f"|format(total_cost_usd) }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% endif %}
+
+    <p class="back-link"><a href="{{ back_url }}">← Back to Project</a></p>
+    {% endif %}
+</div>
+
+<style>
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+.breadcrumb a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.breadcrumb a:hover {
+    opacity: 0.8;
+}
+
+.breadcrumb-separator {
+    margin: 0 0.5rem;
+}
+
+.session-metadata {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.meta-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 100px;
+}
+
+.meta-value {
+    color: var(--text-primary);
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.stat-value.highlight {
+    color: var(--accent-color);
+}
+
+.messages-table {
+    font-size: 0.9rem;
+}
+
+.timestamp {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.model {
+    font-size: 0.85rem;
+    max-width: 200px;
+    word-break: break-word;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.cost {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.summary-row {
+    border-top: 2px solid var(--border-color);
+    font-weight: 600;
+    background-color: var(--hover-bg);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.error-box {
+    background-color: var(--error-bg);
+    border-left: 4px solid var(--error-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.error-box a {
+    color: var(--error-color);
+    text-decoration: underline;
+}
+
+.back-link {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.back-link a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+.back-link a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

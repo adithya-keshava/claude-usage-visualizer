@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Usage Visualizer</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">Claude Usage Visualizer</h1>
+            <nav class="header-nav">
+                <a href="/" class="nav-link">Overview</a>
+                <a href="/projects" class="nav-link">Projects</a>
+            </nav>
+            <div class="header-actions">
+                <div class="timezone-selector">
+                    <select id="timezone-select" class="timezone-dropdown" aria-label="Select time format">
+                        <option value="UTC">UTC 24h</option>
+                        <option value="Local">Local 24h</option>
+                        <option value="UTC-12h">UTC 12h</option>
+                        <option value="Local-12h">Local 12h</option>
+                    </select>
+                </div>
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <a href="/settings" class="icon-btn" aria-label="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24M19.78 4.22l-4.24 4.24m-3.08 3.08l-4.24 4.24M23 12h-6m-6 0H5M19.78 19.78l-4.24-4.24m-3.08-3.08l-4.24-4.24"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            {% if overview_stats %}
+                <p class="footer-text">Data as of {{ overview_stats.last_computed_date }}</p>
+            {% endif %}
+        </div>
+    </footer>
+
+    <script src="/static/theme.js"></script>
+    <script src="/static/timezone.js"></script>
+    <script src="/static/filters.js"></script>
+    <script src="/static/charts.js"></script>
+    <script src="/static/htmx-config.js"></script>
+</body>
+</html>

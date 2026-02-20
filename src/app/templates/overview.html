@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    {% if error %}
+        <div class="error-banner">
+            <p>{{ error }}</p>
+            <a href="/settings" class="btn btn-primary">Go to Settings</a>
+        </div>
+    {% elif overview_stats %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Estimated Cost</div>
+                <div class="stat-value">${{ "%.2f"|format(total_cost) }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Tokens</div>
+                <div class="stat-value">{{ "{:,}".format(overview_stats.total_input_tokens + overview_stats.total_output_tokens + total_cache_write + total_cache_read) }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Sessions</div>
+                <div class="stat-value">{{ overview_stats.total_sessions }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Messages</div>
+                <div class="stat-value">{{ overview_stats.total_messages }}</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Token Breakdown</h2>
+            <div class="token-breakdown-grid">
+                <div class="breakdown-card">
+                    <div class="breakdown-label">Input Tokens</div>
+                    <div class="breakdown-value">{{ "{:,}".format(overview_stats.total_input_tokens) }}</div>
+                </div>
+                <div class="breakdown-card">
+                    <div class="breakdown-label">Output Tokens</div>
+                    <div class="breakdown-value">{{ "{:,}".format(overview_stats.total_output_tokens) }}</div>
+                </div>
+                <div class="breakdown-card">
+                    <div class="breakdown-label">Cache Write Tokens</div>
+                    <div class="breakdown-value">{{ "{:,}".format(total_cache_write) }}</div>
+                </div>
+                <div class="breakdown-card">
+                    <div class="breakdown-label">Cache Read Tokens</div>
+                    <div class="breakdown-value">{{ "{:,}".format(total_cache_read) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <h2>Filters</h2>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date" class="date-input" />
+                </div>
+                <div class="filter-group">
+                    <label for="end-date">End Date</label>
+                    <input type="date" id="end-date" class="date-input" />
+                </div>
+                <div class="filter-group">
+                    <label for="project-filter">Project</label>
+                    <select id="project-filter" class="project-select">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button id="reset-filters" class="btn-secondary">Reset to All Time</button>
+                </div>
+            </div>
+            <div id="granularity-indicator" class="granularity-badge" style="display:none;">
+                <span class="badge">Showing Hourly Data</span>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <h2>Analytics</h2>
+            <div class="charts-grid">
+                <div class="chart-wrapper">
+                    <canvas id="dailyActivityChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="modelCostChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="dailyCostChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Per-Model Token & Cost Breakdown</h2>
+            <table class="table models-table">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Input Tokens</th>
+                        <th>Output Tokens</th>
+                        <th>Cache Write</th>
+                        <th>Cache Read</th>
+                        <th>Total Tokens</th>
+                        <th>Estimated Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in model_rows %}
+                        <tr>
+                            <td><strong>{{ row.display_name }}</strong></td>
+                            <td class="text-right">{{ "{:,}".format(row.input_tokens) }}</td>
+                            <td class="text-right">{{ "{:,}".format(row.output_tokens) }}</td>
+                            <td class="text-right">{{ "{:,}".format(row.cache_write_tokens) }}</td>
+                            <td class="text-right">{{ "{:,}".format(row.cache_read_tokens) }}</td>
+                            <td class="text-right"><strong>{{ "{:,}".format(row.total_tokens) }}</strong></td>
+                            <td class="text-right"><strong>${{ "%.2f"|format(row.cost_usd) }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="totals-row">
+                        <td><strong>Totals</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(overview_stats.total_input_tokens) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(overview_stats.total_output_tokens) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(total_cache_write) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(total_cache_read) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(overview_stats.total_input_tokens + overview_stats.total_output_tokens + total_cache_write + total_cache_read) }}</strong></td>
+                        <td class="text-right"><strong>${{ "%.2f"|format(total_cost) }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Daily Activity</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Messages</th>
+                        <th>Sessions</th>
+                        <th>Tool Calls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in overview_stats.daily_activity|reverse %}
+                        <tr>
+                            <td><span data-timestamp="{{ activity.date }}T00:00:00Z">{{ activity.date }}</span></td>
+                            <td>{{ activity.message_count }}</td>
+                            <td>{{ activity.session_count }}</td>
+                            <td>{{ activity.tool_call_count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No Data Available</h2>
+            <p>Unable to load stats-cache.json. Please configure your Claude data directory in <a href="/settings">Settings</a>.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
