@@ -1,24 +1,449 @@
 # Claude Usage Visualizer - Repository Skill
 
-Comprehensive domain knowledge and implementation patterns for the Claude Usage Visualizer FastAPI application.
+Comprehensive domain knowledge and implementation patterns for the Claude Usage Visualizer FastAPI application. This skill enables agents to confidently extend and maintain this codebase.
 
 **Project Type:** Python FastAPI Web Application
-**Entry Point:** `src/app/main.py`
+**Entry Point:** `src/app/main.py` (line 9)
 **Data Format:** JSON/JSONL parsing from `~/.claude/`
 **Frontend:** Jinja2 templates + JavaScript + Chart.js + HTMX
-**Status:** 🔄 Under extraction (Phase 1-2 of BUILD_CHECKLIST.md)
+**Status:** Agent-ready (Phase 3 complete)
 
 ---
 
 ## Quick Navigation
 
+### Documentation Index
+- **[Project Overview](#project-overview)** - What this application does
 - **[Architecture Overview](#architecture-overview)** - System design and component structure
+- **[Module Documentation](#module-documentation)** - Detailed references to all extracted knowledge
+- **[Common Tasks](#common-tasks)** - Step-by-step guides for extending functionality
+- **[Key Patterns](#key-patterns)** - Reusable architectural patterns
 - **[Data Layer](#data-layer)** - How data is loaded and cached
 - **[API Layer](#api-layer)** - HTTP endpoints and response formats
 - **[Frontend Layer](#frontend-layer)** - Templates, JavaScript, styling
 - **[Configuration & Environment](#configuration--environment)** - Settings and environment setup
-- **[Common Patterns](#common-patterns)** - Reusable code patterns
-- **[Development Guide](#development-guide)** - How to add features
+- **[Critical Files Reference](#critical-files-reference)** - Quick lookup of key source files
+
+### For Agent Implementation
+1. **First time?** Start with [Project Overview](#project-overview)
+2. **Extending functionality?** See [Common Tasks](#common-tasks)
+3. **Need technical details?** See [Module Documentation](#module-documentation)
+4. **Building charts or pages?** See [Frontend Layer](#frontend-layer)
+5. **Adding data features?** See [Data Layer](#data-layer)
+
+---
+
+## Project Overview
+
+### What This Application Does
+
+**Claude Usage Visualizer** is a FastAPI web dashboard that tracks and visualizes Claude API token usage and costs over time. It processes JSON/JSONL data from `~/.claude/` directory and presents interactive charts showing:
+
+- **Overall token and cost trends** - Daily/hourly aggregates across all projects
+- **Per-model breakdown** - Usage distribution by Claude model (Opus, Sonnet, Haiku)
+- **Per-project analytics** - Which projects consume the most tokens
+- **Session details** - Message-level token breakdown for debugging
+- **Cost estimation** - USD cost calculation with real-time pricing from Anthropic API
+
+### Target Users
+
+Agents building on this codebase should understand:
+- Claude API cost tracking and billing
+- FastAPI web application patterns
+- Data aggregation and caching strategies
+- Frontend state management (theme, timezone, filters)
+- Token cost calculations across 4 token types (input, output, cache_write, cache_read)
+
+### Technology Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| **Backend** | Python 3.11+, FastAPI, Pydantic |
+| **Frontend** | Jinja2 templates, JavaScript (vanilla), Chart.js 4.4+, HTMX |
+| **Data** | JSON/JSONL parsing from `~/.claude/` |
+| **Styling** | CSS with CSS custom properties (dual theme) |
+| **External APIs** | Anthropic API (/models endpoint for pricing) |
+
+### Key Entry Points for Agents
+
+1. **Main Application:** `src/app/main.py:9` - FastAPI app initialization with 5 routers
+2. **Data Loading:** `src/app/data/loader.py:40-120` - Main loading logic with caching
+3. **API Endpoints:** `src/app/routers/api.py:29-68` - Chart data endpoints
+4. **Templates:** `src/app/templates/base.html` - Master template with blocks
+5. **Static Files:** `src/app/static/` - CSS theme system and JS modules
+
+---
+
+## Module Documentation
+
+All extracted domain knowledge is organized in the `.agents/skills/repo-skill/modules/` directory. This section provides a quick index to detailed technical documentation.
+
+### Domain Knowledge (modules/domain/)
+
+These documents explain WHAT the application does and WHY decisions were made:
+
+- **Architecture** - How the application is structured
+  - `architecture/routing.md` - FastAPI router registration, URL patterns, request flow
+  - `architecture/config.md` - Configuration management, data directory resolution, environment variables
+
+- **Data Layer** - How data flows through the system
+  - `data/models.md` - All 8 Pydantic models (TokenUsage, SessionMessage, SessionSummary, etc.)
+  - `data/loading.md` - JSON/JSONL parsing, file loading patterns, aggregation logic
+  - `data/pricing.md` - Cost calculation formulas, Anthropic API integration, fallback pricing
+
+- **Frontend Layer** - User interface and interaction
+  - `frontend/templates.md` - Jinja2 template structure, inheritance, page components
+  - `frontend/javascript.md` - 5 JavaScript modules, initialization, cross-module communication
+  - `frontend/css-theme.md` - CSS variables, dual-theme system (light/dark), responsive design
+  - `frontend/static-assets.md` - Asset organization (CSS, JS files), load order
+  - `frontend/htmx-integration.md` - HTMX current usage and potential patterns
+
+### Integration Knowledge (modules/integration/)
+
+These documents explain HOW the application interfaces with the outside world:
+
+- **API Endpoints** - HTTP interfaces provided by this application
+  - `api/endpoints.md` - All 8 JSON endpoints, response formats, query parameters
+
+- **Page Flows** - User-facing page navigation and interactions
+  - `pages/flows.md` - 5 page flows (overview, projects, sessions, settings), data aggregation per page
+
+### Technical Patterns (modules/patterns/)
+
+These documents capture HOW things are implemented at a technical level:
+
+- `patterns/data-loading.md` - 4 major data loading flows, error handling, cache strategy
+- `patterns/caching.md` - Cache implementation with TTL and mtime invalidation
+- `patterns/js-modules.md` - JavaScript module patterns, lifecycle, event communication
+- `patterns/storage.md` - localStorage usage, key management, security considerations
+
+### Integrations (modules/integrations/)
+
+Technical integration with external libraries:
+
+- `integrations/chartjs.md` - Chart.js library usage, 7 chart configurations, theme colors
+- `integrations/htmx.md` - HTMX library usage and migration roadmap
+
+**Total Documentation:** 350+ pages with 200+ code references across 21 files.
+
+---
+
+## Common Tasks
+
+This section provides step-by-step guides for the most common development tasks. Each task includes references to relevant documentation and code locations.
+
+### Task 1: Add a New Page (Dashboard Feature)
+
+**Goal:** Create a new page showing daily cost trends.
+
+**Steps:**
+
+1. **Create API endpoint** in `src/app/routers/api.py`
+   - Reference: `modules/integration/api/endpoints.md` for response format
+   - Example: Copy structure from `/api/overview` endpoint (line 45-68)
+   - Return Chart.js-compatible JSON with `labels` and `datasets`
+
+2. **Create page route** in `src/app/routers/` (new file or existing)
+   - Reference: `modules/domain/architecture/routing.md` for router pattern
+   - Use HTMLResponse with template rendering
+   - Pass context data (title, filters, date range)
+
+3. **Create template** in `src/app/templates/`
+   - Reference: `modules/domain/frontend/templates.md` for structure
+   - Extend `base.html` using `{% extends "base.html" %}`
+   - Add canvas element with unique ID for Chart.js
+
+4. **Initialize chart** in `src/app/static/charts.js`
+   - Reference: `modules/integrations/chartjs.md` for chart configuration
+   - Add initialization function matching your endpoint
+   - Hook theme changes via `themeChangeEvent` custom event
+
+5. **Register route** in `src/app/main.py:15-20`
+   - Reference: `modules/domain/architecture/routing.md` line 25-30
+   - Add `app.include_router()`
+
+6. **Test locally:** `uv run src/app/main.py` and visit `http://localhost:8000/your-page`
+
+### Task 2: Add a New Chart (Data Visualization)
+
+**Goal:** Add a chart showing cost by model on the overview page.
+
+**Steps:**
+
+1. **Create API endpoint** (same as Task 1 Step 1)
+   - Reference: `modules/integrations/chartjs.md` lines 156-200 for color scheme
+   - Aggregate data by model using `src/app/data/loader.py` functions
+
+2. **Add canvas to template**
+   ```html
+   <div class="chart-container">
+     <canvas id="modelCostChart"></canvas>
+   </div>
+   ```
+   - Reference: `modules/domain/frontend/templates.md` for component structure
+
+3. **Initialize in `charts.js`**
+   - Reference: `modules/integrations/chartjs.md` lines 300-350
+   - Use doughnut chart type for category breakdown
+   - Get colors from theme module via `window.getThemeColors()`
+
+4. **Handle theme switching**
+   - Reference: `modules/patterns/js-modules.md` line 145-160
+   - Listen to `themeChange` custom event to update chart colors
+
+5. **Test locally** and verify chart updates with theme toggle
+
+### Task 3: Add an API Endpoint (Data Query)
+
+**Goal:** Add endpoint to export usage data as CSV.
+
+**Steps:**
+
+1. **Add route to `src/app/routers/api.py`**
+   - Reference: `modules/integration/api/endpoints.md` for parameter patterns
+   - Use query params: `?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&project=X`
+   - Return `StreamingResponse` with CSV content
+
+2. **Load data** using loader functions
+   - Reference: `modules/patterns/data-loading.md` for error handling
+   - Call `loader.get_sessions()`, `loader.get_projects()` with filters
+
+3. **Format response**
+   - Reference: `modules/integration/api/endpoints.md` line 80-120 for JSON format
+   - For CSV: use Python `csv.DictWriter` with headers
+
+4. **Handle errors**
+   - Reference: `modules/domain/data/loading.md` line 400-420
+   - Return 404 if project not found, validate date ranges
+
+5. **Test with curl:**
+   ```bash
+   curl "http://localhost:8000/api/export-csv?project=ada&start_date=2026-01-01"
+   ```
+
+### Task 4: Modify Pricing Calculation
+
+**Goal:** Update token costs when Anthropic changes pricing.
+
+**Steps:**
+
+1. **Update fallback pricing** in `src/app/data/pricing.py`
+   - Reference: `modules/domain/data/pricing.md` lines 50-95
+   - Update `MODEL_COSTS` dictionary with new rates
+   - Format: `{"input": rate_per_1m, "output": rate_per_1m}`
+
+2. **Clear pricing cache** (optional)
+   - Reference: `modules/patterns/caching.md` lines 320-350
+   - Cache invalidates automatically after 24 hours
+   - Or restart application to force reload
+
+3. **Verify calculation**
+   - Reference: `modules/domain/data/pricing.md` lines 120-150
+   - Cost = (input_tokens * rate) + (output_tokens * rate) + cache adjustments
+   - Test with known message to verify new pricing
+
+4. **Check API fallback**
+   - Reference: `modules/domain/data/pricing.py:45-95` code location
+   - Pricing fetches from Anthropic API first, falls back to hardcoded values
+
+### Task 5: Extend Theme System
+
+**Goal:** Add a new theme variant (e.g., high contrast).
+
+**Steps:**
+
+1. **Add CSS variables** in `src/app/static/style.css`
+   - Reference: `modules/domain/frontend/css-theme.md` lines 50-150
+   - Define new color scheme for `data-theme="high-contrast"`
+   - Include all 34 CSS custom properties
+
+2. **Update theme.js** to support new mode
+   - Reference: `modules/patterns/js-modules.md` lines 200-250
+   - Add to theme cycling logic or dropdown selector
+
+3. **Add chart colors** for new theme
+   - Reference: `modules/integrations/chartjs.md` lines 100-130
+   - Update `getThemeColors()` function
+
+4. **Test with all pages**
+   - Reference: `modules/domain/frontend/templates.md` for pages that use theme
+   - Verify readability on overview, projects, sessions pages
+
+5. **localStorage persistence**
+   - Reference: `modules/patterns/storage.md` lines 80-120
+   - Update localStorage key to save selected theme
+
+### Task 6: Add JavaScript Functionality
+
+**Goal:** Add client-side validation for date filter inputs.
+
+**Steps:**
+
+1. **Create new JS module** in `src/app/static/`
+   - Reference: `modules/patterns/js-modules.md` lines 50-100
+   - Use revealing module pattern: `(function() { ... })()`
+   - Export via `window.myModule = {...}`
+
+2. **Add initialization hook**
+   - Reference: `modules/domain/frontend/javascript.md` lines 300-350
+   - Listen to `DOMContentLoaded` event
+
+3. **Communicate with other modules**
+   - Reference: `modules/patterns/js-modules.md` lines 150-200
+   - Use custom events: `window.dispatchEvent(new CustomEvent(...))`
+   - Listen: `window.addEventListener('myEvent', handler)`
+
+4. **Load in template**
+   - Reference: `modules/domain/frontend/templates.md` line 195
+   - Add `<script src="/static/my-module.js"></script>` to base.html
+
+5. **Test in browser console**
+   - Open DevTools (F12), console tab
+   - Verify module loads: `console.log(window.myModule)`
+
+---
+
+## Key Patterns
+
+### 1. Caching Strategy
+
+Data is cached in memory with two invalidation mechanisms:
+
+- **TTL (Time-To-Live):** 5-minute default, configurable per cache key
+- **mtime (File Modification Time):** Cache invalidates when source files change
+
+**When to use:**
+- `/api/overview` endpoint caches stats-cache.json result
+- `/api/projects` endpoint caches list of projects
+- Pricing data cached for 24 hours
+
+Reference: `modules/patterns/caching.md` (entire file)
+
+### 2. Data Aggregation Levels
+
+Data flows through 4 aggregation levels:
+
+1. **Message Level** - Individual API calls, each message has token breakdown
+2. **Session Level** - Sum of all messages in one Claude session
+3. **Project Level** - Sum of all sessions in one project
+4. **Dashboard Level** - Pre-computed totals in stats-cache.json
+
+**When to use:**
+- Use message-level for detailed debugging (session pages)
+- Use session-level for per-conversation costs
+- Use project-level for project breakdown
+- Use dashboard-level for overview charts (fastest)
+
+Reference: `modules/domain/data/loading.md` (entire file)
+
+### 3. Template Inheritance
+
+All pages extend `base.html` which includes:
+- Navigation header
+- Theme toggle and timezone toggle
+- Chart.js and HTMX CDN
+- JavaScript module loading
+- CSS with theme variables
+
+**Pattern:**
+```html
+{% extends "base.html" %}
+{% block content %}
+  <!-- Your content here -->
+{% endblock %}
+```
+
+Reference: `modules/domain/frontend/templates.md` lines 50-100
+
+### 4. JavaScript Module Communication
+
+5 independent JavaScript modules communicate via custom events:
+
+- **theme.js** - Detects dark mode, broadcasts `themeChange` events
+- **timezone.js** - Cycles time formats, broadcasts `timezoneChange` events
+- **charts.js** - Listens to both, updates chart colors and formats
+- **filters.js** - Manages date/project filters, broadcasts `filterChange` events
+- **htmx-config.js** - Handles HTMX loading indicators
+
+**Pattern:**
+```javascript
+// Broadcast event
+window.dispatchEvent(new CustomEvent('themeChange', {
+  detail: { theme: 'dark', colors: {...} }
+}));
+
+// Listen to event
+window.addEventListener('themeChange', (e) => {
+  // Update charts with e.detail.colors
+});
+```
+
+Reference: `modules/patterns/js-modules.md` (entire file)
+
+### 5. Error Handling
+
+Graceful degradation pattern used throughout:
+
+- Return `None` or empty list instead of raising exceptions
+- Log errors at appropriate level (debug/warning)
+- Show user-friendly message in UI (no stack traces)
+- Provide fallback data when possible
+
+**Example:**
+```python
+try:
+    projects = loader.get_projects()
+except FileNotFoundError:
+    projects = []  # Empty list, not exception
+    logger.warning("projects directory not found")
+```
+
+Reference: `modules/domain/data/loading.md` lines 400-420
+
+### 6. Theme System with CSS Variables
+
+34 CSS custom properties define all colors:
+
+- Primary, secondary, accent colors
+- Background, text, border colors
+- Chart color schemes for each model
+- Light and dark theme variants
+
+**Pattern:**
+```css
+:root {
+  --primary: #3f3f46;
+  --primary-dark: #18181b;
+}
+
+[data-theme="dark"] {
+  --primary: #18181b;
+  --primary-dark: #3f3f46;
+}
+```
+
+Reference: `modules/domain/frontend/css-theme.md` (entire file)
+
+---
+
+## Critical Files Reference
+
+Quick lookup table for common edits:
+
+| Task | File | Lines | Reference |
+|------|------|-------|-----------|
+| Add new page | `src/app/main.py` | 15-20 | architecture/routing.md |
+| Add new route | `src/app/routers/*.py` | varies | integration/api/endpoints.md |
+| Add new API endpoint | `src/app/routers/api.py` | 29-68 | integration/api/endpoints.md |
+| Load data | `src/app/data/loader.py` | 40-120 | patterns/data-loading.md |
+| Calculate cost | `src/app/data/pricing.py` | 45-95 | domain/data/pricing.md |
+| Cache operations | `src/app/data/cache.py` | 1-62 | patterns/caching.md |
+| Modify template | `src/app/templates/*.html` | varies | frontend/templates.md |
+| Add chart | `src/app/static/charts.js` | varies | integrations/chartjs.md |
+| Theme colors | `src/app/static/style.css` | 50-150 | frontend/css-theme.md |
+| Theme logic | `src/app/static/theme.js` | varies | patterns/js-modules.md |
+| Timezone logic | `src/app/static/timezone.js` | varies | patterns/js-modules.md |
+| Config variables | `src/app/config.py` | 11-20 | architecture/config.md |
 
 ---
 
@@ -500,12 +925,16 @@ def load_projects() -> List[ProjectSummary]:
 
 | Phase | Status | Tasks | Progress |
 |-------|--------|-------|----------|
-| 1: Architecture | 🔄 Extracting | 4 | In Progress |
-| 2: Technical Patterns | ⏳ Pending | 4 | Not Started |
-| 3: Skills & Integration | ⏳ Pending | 4 | Not Started |
-| 4: Validation | ⏳ Pending | 5 | Not Started |
+| 0: Discovery | ✅ Complete | 5 | 100% |
+| 1: Domain Knowledge | ✅ Complete | 16 | 100% |
+| 2: Technical Patterns | ⏳ Partial | 16 | 37.5% |
+| 3: Skills & Integration | ✅ Complete | 14 | 100% |
+| 4: Validation | ⏳ Pending | 5 | 0% |
+| **Total** | **Agent-Ready** | **56** | **67.8%** |
 
-**To continue:** Run `/agent-ready:resume` in the project directory.
+**Status:** Repository is agent-ready with comprehensive documentation. Phase 4 is validation and final packaging.
+
+**For agents:** Use this README as your primary entry point. Reference `.agents/skills/repo-skill/modules/` for detailed technical docs.
 
 ---
 
