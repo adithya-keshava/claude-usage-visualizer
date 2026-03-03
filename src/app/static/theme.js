@@ -17,16 +17,23 @@ function initTheme() {
     applyTheme(theme);
 }
 
-function applyTheme(theme) {
+function applyTheme(theme, dispatchEvent = false) {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem(THEME_KEY, theme);
+
+    // Dispatch custom event only when toggling (not on initial load)
+    if (dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('themechange', {
+            detail: { theme: theme }
+        }));
+    }
 }
 
 function toggleTheme() {
     const html = document.documentElement;
     const current = html.getAttribute("data-theme");
     const newTheme = current === DARK_THEME ? LIGHT_THEME : DARK_THEME;
-    applyTheme(newTheme);
+    applyTheme(newTheme, true); // Dispatch event on toggle
 }
 
 // Set up theme toggle button

@@ -520,3 +520,89 @@ def get_project_cost_breakdown(encoded_path: str):
             }
         ],
     }
+
+
+@router.get("/token-usage-trend")
+def get_token_usage_trend(start_date: Optional[str] = None, end_date: Optional[str] = None):
+    """Return daily token usage by type (input, output, cache read, cache write) for time series chart."""
+    project_summaries = build_project_summaries()
+    if not project_summaries:
+        raise HTTPException(status_code=404, detail="Projects data not found")
+
+    # Aggregate tokens by date and type
+    daily_tokens = defaultdict(lambda: {
+        "input": 0,
+        "output": 0,
+        "cache_read": 0,
+        "cache_write": 0
+    })
+
+    for encoded_path, sessions in project_summaries.items():
+        for session in sessions:
+            session_date = session.timestamp.split("T")[0]
+
+            # Filter by date range
+            if start_date and session_date < start_date:
+                continue
+            if end_date and session_date > end_date:
+                continue
+
+            # Load messages to get detailed token breakdowns
+            messages = load_session_messages(encoded_path, session.session_id)
+            for msg in messages:
+                msg_date = msg.timestamp.split("T")[0]
+                daily_tokens[msg_date]["input"] += msg.input_tokens
+                daily_tokens[msg_date]["output"] += msg.output_tokens
+                daily_tokens[msg_date]["cache_read"] += msg.cache_read_input_tokens
+                daily_tokens[msg_date]["cache_write"] += msg.cache_creation_input_tokens
+
+    # Sort by date
+    sorted_dates = sorted(daily_tokens.keys())
+
+    # Prepare datasets
+    input_tokens = [daily_tokens[d]["input"] for d in sorted_dates]
+    output_tokens = [daily_tokens[d]["output"] for d in sorted_dates]
+    cache_read_tokens = [daily_tokens[d]["cache_read"] for d in sorted_dates]
+    cache_write_tokens = [daily_tokens[d]["cache_write"] for d in sorted_dates]
+
+    return {
+        "labels": sorted_dates,
+        "datasets": [
+            {
+                "label": "Input Tokens",
+                "data": input_tokens,
+                "borderColor": "rgba(139, 92, 246, 1)",
+                "backgroundColor": "rgba(139, 92, 246, 0.1)",
+                "borderWidth": 2,
+                "tension": 0.3,
+                "fill": False,
+            },
+            {
+                "label": "Output Tokens",
+                "data": output_tokens,
+                "borderColor": "rgba(59, 130, 246, 1)",
+                "backgroundColor": "rgba(59, 130, 246, 0.1)",
+                "borderWidth": 2,
+                "tension": 0.3,
+                "fill": False,
+            },
+            {
+                "label": "Cache Read Tokens",
+                "data": cache_read_tokens,
+                "borderColor": "rgba(16, 185, 129, 1)",
+                "backgroundColor": "rgba(16, 185, 129, 0.1)",
+                "borderWidth": 2,
+                "tension": 0.3,
+                "fill": False,
+            },
+            {
+                "label": "Cache Write Tokens",
+                "data": cache_write_tokens,
+                "borderColor": "rgba(245, 158, 11, 1)",
+                "backgroundColor": "rgba(245, 158, 11, 0.1)",
+                "borderWidth": 2,
+                "tension": 0.3,
+                "fill": False,
+            },
+        ],
+    }

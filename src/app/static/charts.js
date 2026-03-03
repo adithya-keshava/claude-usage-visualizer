@@ -3,8 +3,11 @@
  * Handles chart creation, theme colors, and timezone conversion
  */
 
-// Chart.js default font
+// Chart.js default font and sizing
 Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = true;
+Chart.defaults.aspectRatio = 2;
 
 // Get model colors from CSS variables
 function getModelColor(modelId, opacity = 0.8) {
@@ -516,6 +519,93 @@ function initProjectModelCostChart() {
         .catch(err => console.error('Failed to load project cost chart:', err));
 }
 
+// Create token usage trend line chart
+function initTokenUsageTrendChart() {
+    const canvas = document.getElementById('tokenUsageTrendChart');
+    if (!canvas) {
+        console.warn('tokenUsageTrendChart canvas not found');
+        return;
+    }
+
+    console.log('Initializing token usage trend chart...');
+
+    fetch('/api/token-usage-trend')
+        .then(res => {
+            if (!res.ok) throw new Error(`API error: ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            console.log('Token usage data received:', {
+                labels: data.labels?.length,
+                datasets: data.datasets?.length
+            });
+            const theme = getChartThemeColors();
+            const ctx = canvas.getContext('2d');
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: theme.textColor,
+                                padding: 15,
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Token Usage Over Time',
+                            color: theme.textColor,
+                            padding: 20,
+                            font: { size: 14, weight: 'bold' },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return `${context.dataset.label}: ${value.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Tokens',
+                                color: theme.textColor,
+                            },
+                            ticks: {
+                                color: theme.textColor,
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            },
+                            grid: { color: theme.gridColor },
+                        },
+                        x: {
+                            ticks: { color: theme.textColor },
+                            grid: { color: theme.gridColor },
+                        },
+                    },
+                },
+            });
+
+            // Store chart instance for dynamic updates
+            window.chartInstances = window.chartInstances || {};
+            window.chartInstances['tokenUsageTrendChart'] = chart;
+            console.log('Token usage trend chart created successfully');
+        })
+        .catch(err => console.error('Failed to load token usage trend chart:', err));
+}
+
 // Initialize all charts when DOM is ready
 function initAllCharts() {
     // Wait for DOM to be ready
@@ -531,6 +621,7 @@ function initAllCharts() {
     initProjectCostChart();
     initProjectActivityChart();
     initProjectModelCostChart();
+    initTokenUsageTrendChart();
 }
 
 // Initialize on page load
@@ -538,9 +629,8 @@ initAllCharts();
 
 // Reinitialize charts when theme changes
 document.addEventListener('themechange', () => {
-    // For now, a simple page reload works best
-    // In future, could update chart colors dynamically
-    setTimeout(() => window.location.reload(), 200);
+    // Reload page to apply new theme colors to charts
+    window.location.reload();
 });
 
 // Update timestamps when timezone format changes

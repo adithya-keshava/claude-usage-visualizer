@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
 
-from app.data.loader import build_session_summary, load_session_messages
+from app.data.loader import build_session_summary, load_history, load_session_messages
 
 router = APIRouter()
 
@@ -16,8 +16,11 @@ env = Environment(loader=FileSystemLoader(templates_dir))
 @router.get("/sessions/{encoded_path}/{session_id}", response_class=HTMLResponse)
 def session_detail(encoded_path: str, session_id: str):
     """Render detail view for a single session with per-message breakdown."""
+    # Load history to get renamed session names
+    history = load_history()
+
     # Load session summary for metadata
-    summary = build_session_summary(encoded_path, session_id, {})
+    summary = build_session_summary(encoded_path, session_id, history)
 
     if not summary:
         template = env.get_template("session_detail.html")
@@ -69,10 +72,19 @@ def session_detail(encoded_path: str, session_id: str):
         total_cache_read += msg.cache_read_input_tokens
         total_cache_creation += msg.cache_creation_input_tokens
 
-    # Calculate totals
-    total_input = sum(m.input_tokens for m in messages)
-    total_output = sum(m.output_tokens for m in messages)
-    total_cost = sum(m.cost_usd for m in messages)
+    # Calculate message-level totals (main session only)
+    message_total_input = sum(m.input_tokens for m in messages)
+    message_total_output = sum(m.output_tokens for m in messages)
+    message_total_cost = sum(m.cost_usd for m in messages)
+
+    # Use pre-calculated totals from summary (includes subagents)
+    # This ensures consistency with project listing page
+    total_input = summary.total_input_tokens
+    total_output = summary.total_output_tokens
+    total_cost = summary.total_cost_usd
+
+    # Show warning if there's a difference (subagents present)
+    has_subagents = (total_cost != message_total_cost)
 
     template = env.get_template("session_detail.html")
     return template.render(
@@ -87,6 +99,8 @@ def session_detail(encoded_path: str, session_id: str):
         total_cache_read_tokens=total_cache_read,
         total_cache_creation_tokens=total_cache_creation,
         total_cost_usd=total_cost,
+        has_subagents=has_subagents,
+        message_total_cost=message_total_cost,
         models=", ".join(sorted(summary.models_used)) if summary.models_used else "unknown",
         error=None,
         back_url=f"/projects/{encoded_path}",

@@ -7,6 +7,35 @@ Comprehensive domain knowledge and implementation patterns for the Claude Usage 
 **Data Format:** JSON/JSONL parsing from `~/.claude/`
 **Frontend:** Jinja2 templates + JavaScript + Chart.js + HTMX
 **Status:** Agent-ready (Phase 3 complete)
+**Version:** 6 (Latest: 2026-03-03)
+
+## Recent Changes (v6)
+
+**IMPORTANT:** Review `CHANGELOG.md` for detailed version history and breaking changes.
+
+**Latest Updates (2026-03-03):**
+- Professional design system with refined color palettes (dark: #0a0e14, light: #ffffff)
+- Chart maximize functionality (`chart-maximize.js`) with fullscreen modal
+- Optimized chart sizing (420px desktop, explicit height + min-height)
+- Token usage time series chart (4 token types: input, output, cache_read, cache_write)
+- Theme change improvements (no invisible text, immediate reload)
+- Cost calculation fixes (subagent support in session details)
+
+**Key Files Changed:**
+- `src/app/static/style.css` - Design system v6 (34 CSS variables)
+- `src/app/static/chart-maximize.js` - NEW fullscreen chart modal
+- `src/app/static/theme.js` - Event dispatch fix (only on toggle)
+- `src/app/static/charts.js` - Chart.js defaults, token usage trend chart
+- `src/app/routers/api.py` - `/api/token-usage-trend` endpoint
+- `src/app/routers/sessions.py` - Pre-calculated totals with subagent costs
+
+**Critical Patterns (Must Follow):**
+1. Theme change must reload page (Chart.js color limitation)
+2. Chart buttons need multiple init attempts (async charts)
+3. Chart containers need explicit `height` property
+4. Always use pre-calculated totals for cost (includes subagents)
+
+See `FINAL_FIXES_v6.md` for testing instructions.
 
 ---
 

@@ -2,7 +2,8 @@
 
 **Project:** Claude Usage Visualizer (FastAPI + JavaScript)
 **Status:** Agent-Ready (Phase 3 Complete)
-**Last Updated:** 2026-02-20
+**Version:** 6 (Latest: 2026-03-03)
+**Last Updated:** 2026-03-03
 
 This file enables skill-based development by listing all available skills and their triggering conditions.
 
@@ -55,13 +56,15 @@ claude-usage-visualizer/
 │       └── htmx-config.js      # HTMX configuration
 ├── .agents/skills/repo-skill/
 │   ├── README.md               # Comprehensive development guide
+│   ├── CHANGELOG.md            # Version history and breaking changes
 │   ├── EXTRACTION_SUMMARY.md   # What was extracted
 │   └── modules/                # 350+ pages of domain knowledge
 │       ├── domain/             # Business logic (architecture, data, frontend)
 │       ├── integration/        # External interfaces (API, pages)
 │       ├── patterns/           # Implementation patterns
 │       └── integrations/       # Third-party library usage
-├── BUILD_CHECKLIST.md          # Extraction progress (27/56 = 48.2%)
+├── BUILD_CHECKLIST.md          # Extraction progress (41/56 = 73.2%)
+├── FINAL_FIXES_v6.md           # Latest UI/UX fixes documentation
 └── AGENTS.md                   # This file (skills index)
 ```
 
@@ -411,9 +414,19 @@ uv run src/app/main.py
 | 2: Technical Patterns | ⏳ Partial | 6/16 | 6 files created (37.5%) |
 | 3: Skills & Integration | ✅ Complete | 14/14 | Repo skill and AGENTS.md ready |
 | 4: Validation | ⏳ Pending | 0/5 | Scheduled for final phase |
-| **Total** | **Agent-Ready** | **27/56** | **48.2%** |
+| **Total** | **Agent-Ready** | **41/56** | **73.2%** |
 
 **Status:** Repository is fully agent-ready. All necessary documentation is in place. Phase 4 is optional validation.
+
+**Recent Updates (v6):**
+- Professional design system with refined dark/light themes
+- Chart maximize functionality with fullscreen modal
+- Optimized chart sizing (420px desktop, 450px large screens)
+- Token usage time series chart showing all token types
+- Theme change improvements (immediate reload, no invisible text)
+- Cost calculation fixes (subagent support)
+
+See `.agents/skills/repo-skill/CHANGELOG.md` for detailed version history.
 
 ---
 
@@ -476,6 +489,7 @@ All necessary information is in `.agents/skills/repo-skill/` with detailed modul
 
 ---
 
-**Last Updated:** 2026-02-20
-**Build Status:** Phase 3 Complete (27/56 = 48.2%, agent-ready)
+**Last Updated:** 2026-03-03
+**Build Status:** Phase 3 Complete (41/56 = 73.2%, agent-ready)
+**Version:** 6 (Latest UI/UX improvements)
 **Maintained By:** Agent-readiness extraction pipeline

@@ -2,8 +2,9 @@
 
 **Project:** Claude Usage Visualizer
 **Language:** Python (FastAPI)
-**Status:** ⏳ In Progress
-**Last Updated:** 2026-02-20
+**Status:** ⏳ In Progress (Agent-Ready)
+**Version:** 6 (Latest: 2026-03-03)
+**Last Updated:** 2026-03-03
 
 ---
 
