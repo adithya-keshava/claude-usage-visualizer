@@ -27,6 +27,14 @@
                         <option value="Local-12h">Local 12h</option>
                     </select>
                 </div>
+                <button id="refresh-pricing-btn" class="icon-btn refresh-pricing-btn" aria-label="Refresh cost model" title="Re-fetch latest prices from platform.claude.com/docs">
+                    <svg id="refresh-pricing-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span style="margin-left: 6px;">Refresh Pricing</span>
+                </button>
                 <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -68,5 +76,83 @@
     <script src="/static/charts.js?v=6"></script>
     <script src="/static/chart-maximize.js?v=6"></script>
     <script src="/static/htmx-config.js?v=6"></script>
+    <script>
+    (function () {
+        var btn = document.getElementById('refresh-pricing-btn');
+        var icon = document.getElementById('refresh-pricing-icon');
+        var label = btn.querySelector('span');
+        var resetTimer = null;
+
+        function setState(state, detail) {
+            clearTimeout(resetTimer);
+            btn.classList.remove('state-loading', 'state-success', 'state-error');
+            icon.classList.remove('spinning');
+
+            if (state === 'loading') {
+                btn.disabled = true;
+                btn.classList.add('state-loading');
+                icon.classList.add('spinning');
+                label.textContent = 'Refreshing…';
+            } else if (state === 'success') {
+                btn.disabled = false;
+                btn.classList.add('state-success');
+                label.textContent = 'Updated!';
+                if (detail) showPricingToast(detail, 'success');
+                resetTimer = setTimeout(setIdle, 2500);
+            } else if (state === 'error') {
+                btn.disabled = false;
+                btn.classList.add('state-error');
+                label.textContent = 'Failed';
+                if (detail) showPricingToast(detail, 'error');
+                resetTimer = setTimeout(setIdle, 2500);
+            }
+        }
+
+        function setIdle() {
+            btn.classList.remove('state-loading', 'state-success', 'state-error');
+            icon.classList.remove('spinning');
+            btn.disabled = false;
+            label.textContent = 'Refresh Pricing';
+        }
+
+        btn.addEventListener('click', function () {
+            if (btn.disabled) return;
+            setState('loading');
+
+            fetch('/api/pricing/refresh', { method: 'POST' })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.changed) {
+                        btn.classList.remove('state-loading', 'state-success', 'state-error');
+                        btn.classList.add('state-success');
+                        icon.classList.remove('spinning');
+                        label.textContent = 'Updated! Reloading…';
+                        setTimeout(function () { window.location.reload(); }, 1500);
+                    } else {
+                        var detail = data.source === 'live'
+                            ? data.models + ' models checked — no price changes'
+                            : 'Could not reach pricing page — using built-in fallback rates';
+                        setState('success', detail);
+                        label.textContent = 'No changes';
+                    }
+                })
+                .catch(function () {
+                    setState('error', 'Request failed — check your connection');
+                });
+        });
+
+        function showPricingToast(message, type) {
+            var toast = document.createElement('div');
+            toast.className = 'pricing-toast pricing-toast-' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            requestAnimationFrame(function () { toast.classList.add('pricing-toast-visible'); });
+            setTimeout(function () {
+                toast.classList.remove('pricing-toast-visible');
+                setTimeout(function () { toast.remove(); }, 300);
+            }, 4000);
+        }
+    })();
+    </script>
 </body>
 </html>

@@ -1165,3 +1165,82 @@ a:hover {
         padding: 1.5rem;
     }
 }
+
+/* Refresh pricing labeled button */
+.refresh-pricing-btn {
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    white-space: nowrap;
+    min-width: 7.5rem;
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.refresh-pricing-btn:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+}
+
+.refresh-pricing-btn:disabled {
+    cursor: not-allowed;
+}
+
+.refresh-pricing-btn.state-loading {
+    color: var(--text-secondary);
+}
+
+.refresh-pricing-btn.state-success {
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.refresh-pricing-btn.state-error {
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+/* Refresh pricing button – spinning state */
+@keyframes spin-icon {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.spinning {
+    animation: spin-icon 0.9s linear infinite;
+    display: inline-block;
+}
+
+/* Toast notification for pricing refresh */
+.pricing-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fff;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    max-width: 360px;
+}
+
+.pricing-toast-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.pricing-toast-success {
+    background-color: var(--success-color, #34d399);
+    color: #0a0e14;
+}
+
+.pricing-toast-error {
+    background-color: var(--error-color, #f87171);
+    color: #0a0e14;
+}

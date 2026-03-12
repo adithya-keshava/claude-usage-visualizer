@@ -10,7 +10,7 @@ from app.data.loader import (
     load_session_messages,
     load_stats_cache,
 )
-from app.data.pricing import estimate_cost
+from app.data.pricing import estimate_cost, get_cached_pricing, get_pricing_info, refresh_pricing_cache
 
 router = APIRouter(prefix="/api")
 
@@ -606,3 +606,20 @@ def get_token_usage_trend(start_date: Optional[str] = None, end_date: Optional[s
             },
         ],
     }
+
+
+@router.get("/pricing")
+def get_pricing():
+    """Return current pricing cache status (source, model count, timestamp)."""
+    return get_pricing_info()
+
+
+@router.post("/pricing/refresh")
+def refresh_pricing():
+    """Force-refresh the pricing cache. Returns changed=True if any prices differ."""
+    old = dict(get_cached_pricing())
+    refresh_pricing_cache()
+    new = get_cached_pricing()
+    info = get_pricing_info()
+    info["changed"] = new != old
+    return info
