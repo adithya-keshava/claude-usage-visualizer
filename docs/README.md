@@ -45,16 +45,23 @@ docs/
 ```bash
 git clone <repo>
 cd claude-usage-visualizer
-uv sync
+make setup
 ```
 
 ### Running the Application
 
 ```bash
-uv run --python 3.11 src/main.py
+# Development (auto-reload)
+make dev
+
+# Production
+make run
+
+# Stop the server
+make stop
 ```
 
-Navigate to: `http://localhost:8000/`
+Navigate to: `http://127.0.0.1:8000/`
 
 ### Configuration
 
@@ -156,8 +163,8 @@ Dropdown in header with 4 options:
 See `TESTING.md` for comprehensive testing guide with 10+ scenarios.
 
 Quick validation:
-1. Start server: `uv run --python 3.11 src/main.py`
-2. Open: `http://localhost:8000/`
+1. Start server: `make dev`
+2. Open: `http://127.0.0.1:8000/`
 3. Test timezone button in header
 4. Test navigation between pages
 5. Check localStorage persistence
