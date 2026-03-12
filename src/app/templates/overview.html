@@ -15,7 +15,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-label">Total Tokens</div>
-                <div class="stat-value">{{ "{:,}".format(overview_stats.total_input_tokens + overview_stats.total_output_tokens + total_cache_write + total_cache_read) }}</div>
+                <div class="stat-value">{{ "{:,}".format(total_input_tokens + total_output_tokens + total_cache_write + total_cache_read) }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Total Sessions</div>
@@ -32,11 +32,11 @@
             <div class="token-breakdown-grid">
                 <div class="breakdown-card">
                     <div class="breakdown-label">Input Tokens</div>
-                    <div class="breakdown-value">{{ "{:,}".format(overview_stats.total_input_tokens) }}</div>
+                    <div class="breakdown-value">{{ "{:,}".format(total_input_tokens) }}</div>
                 </div>
                 <div class="breakdown-card">
                     <div class="breakdown-label">Output Tokens</div>
-                    <div class="breakdown-value">{{ "{:,}".format(overview_stats.total_output_tokens) }}</div>
+                    <div class="breakdown-value">{{ "{:,}".format(total_output_tokens) }}</div>
                 </div>
                 <div class="breakdown-card">
                     <div class="breakdown-label">Cache Write Tokens</div>
@@ -126,11 +126,11 @@
                 <tfoot>
                     <tr class="totals-row">
                         <td><strong>Totals</strong></td>
-                        <td class="text-right"><strong>{{ "{:,}".format(overview_stats.total_input_tokens) }}</strong></td>
-                        <td class="text-right"><strong>{{ "{:,}".format(overview_stats.total_output_tokens) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(total_input_tokens) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(total_output_tokens) }}</strong></td>
                         <td class="text-right"><strong>{{ "{:,}".format(total_cache_write) }}</strong></td>
                         <td class="text-right"><strong>{{ "{:,}".format(total_cache_read) }}</strong></td>
-                        <td class="text-right"><strong>{{ "{:,}".format(overview_stats.total_input_tokens + overview_stats.total_output_tokens + total_cache_write + total_cache_read) }}</strong></td>
+                        <td class="text-right"><strong>{{ "{:,}".format(total_input_tokens + total_output_tokens + total_cache_write + total_cache_read) }}</strong></td>
                         <td class="text-right"><strong>${{ "%.2f"|format(total_cost) }}</strong></td>
                     </tr>
                 </tfoot>
