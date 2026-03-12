@@ -13,6 +13,18 @@ FALLBACK_PRICING = {
         "cache_write": 18.75,
         "cache_read": 1.50,
     },
+    "claude-sonnet-4-6": {
+        "input": 3.00,
+        "output": 15.00,
+        "cache_write": 3.75,
+        "cache_read": 0.30,
+    },
+    "claude-haiku-4-6": {
+        "input": 0.80,
+        "output": 4.00,
+        "cache_write": 1.00,
+        "cache_read": 0.08,
+    },
     "claude-opus-4-5-20251101": {
         "input": 15.00,
         "output": 75.00,
