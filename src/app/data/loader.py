@@ -212,10 +212,6 @@ def load_session_messages(
                     # Skip synthetic models
                     if msg.get("message", {}).get("model") == "<synthetic>":
                         continue
-                    # Skip sidechain (abandoned branches)
-                    if msg.get("isSidechain"):
-                        continue
-
                     # Usage is nested inside message object
                     usage = msg.get("message", {}).get("usage")
                     if not usage:

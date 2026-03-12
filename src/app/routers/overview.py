@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import get_data_dir
-from app.data.loader import load_stats_cache
+from app.data.loader import build_project_summaries, load_stats_cache
 from app.data.pricing import estimate_cost
 
 router = APIRouter()
@@ -27,16 +27,13 @@ def overview():
             error="No stats-cache.json found. Please configure the data directory in settings.",
         )
 
-    # Compute total estimated cost from model stats
+    # Compute total cost from project summaries — same source as the projects page,
+    # so this number is guaranteed to equal the sum of all project-wise costs.
+    project_summaries = build_project_summaries()
     total_cost = sum(
-        estimate_cost(
-            model_id,
-            input_tokens=stats.input_tokens,
-            output_tokens=stats.output_tokens,
-            cache_creation_input_tokens=stats.cache_creation_input_tokens,
-            cache_read_input_tokens=stats.cache_read_input_tokens,
-        )
-        for model_id, stats in overview_stats.model_stats.items()
+        session.total_cost_usd
+        for sessions in project_summaries.values()
+        for session in sessions
     )
 
     # Calculate cache token totals
